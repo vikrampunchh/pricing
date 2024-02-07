@@ -13,15 +13,19 @@
               </div>
               <ul class="list-group list-group-flush">
                 <li class="list-group-item">
-                  <span class="h5">${{ plan.per_event }}</span> Per Event (after {{ numberFormatting(plan.free_events) }})
+                  <span class="h5">${{ plan.base_price }}</span> Monthly Base Price
                 </li>
                 <li class="list-group-item">
-                  <span class="h5">${{ plan.base_price }}</span> Per Month
+                  <span class="h5">${{ plan.base_price / plan.free_events }}</span> CPE* (for initial {{ numberFormatting(plan.free_events) }})
                 </li>
-                <li class="list-group-item">{{ plan.notes }}</li>
+                <!-- <li class="list-group-item">
+                  <span class="h5">{{ numberFormatting(plan.free_events) }}</span> Events Monthly
+                </li> -->
+
                 <li class="list-group-item">
-                  <span class="h5">${{ plan.base_price / plan.free_events }}</span> Per Event (for initial {{ numberFormatting(plan.free_events) }})
+                  <span class="h5">${{ plan.per_event }}</span> CPE* (after {{ numberFormatting(plan.free_events) }})
                 </li>
+                <!-- <li class="list-group-item">{{ plan.notes }}</li> -->
               </ul>
             </div>
             <div class="card-body text-center">
@@ -59,14 +63,14 @@
                 </li>
                 <li class="list-group-item d-flex justify-content-between">
                   <div>
-                    Base Price <br />
+                    Monthly Base Price <br />
                     <small class="text-grey">Includes {{ numberFormatting(selectedPlan.free_events) }} events</small>
                   </div>
                   <div class="h6">${{ selectedPlan.base_price }}</div>
                 </li>
                 <li class="list-group-item d-flex justify-content-between">
                   <div>
-                    After 1M <br />
+                    After {{ numberFormatting(selectedPlan.free_events) }} <br />
                     <small class="text-grey">{{ plansRemainingEvents() }}</small>
                   </div>
                   <div class="h6">${{ remainingEventsCost() }}</div>
@@ -83,6 +87,7 @@
           </div>
         </div>
       </div>
+      <div class="py-4">*Cost per event</div>
     </div>
   </div>
 </template>
@@ -101,7 +106,7 @@ export default {
       {
         id: 1,
         name: 'Tier A - Entry Level',
-        desc: 'Includes 400K events per month across all webhook/Amplify integrations',
+        desc: 'Complimentary 400K events/month',
         notes: 'Low barrier to entry/ Higher CPE* after initial allocation',
         base_price: 500,
         free_events: 400000,
@@ -110,7 +115,7 @@ export default {
       {
         id: 2,
         name: 'Tier B - Moderate Usage',
-        desc: 'Includes 1M events per month across all webhook/Amplify integrations',
+        desc: 'Complimentary 1M events/month',
         notes: 'Moderate barrier to entry/ Cost-effective CPE* after initial allocation',
         base_price: 1000,
         free_events: 1000000,
@@ -119,7 +124,7 @@ export default {
       {
         id: 3,
         name: 'Tier C - Power User',
-        desc: 'Includes 5M events per month across all webhook/Amplify integrations',
+        desc: 'Complimentary 5M events/month',
         notes: 'Enterprise level / Very low CPE* after initial allocation',
         base_price: 5000,
         free_events: 5000000,
@@ -145,7 +150,7 @@ export default {
       var unit = Math.floor((num / 1.0e1).toFixed(0).toString().length)
       var r = unit % 3
       var x = Math.abs(Number(num)) / Number('1.0e+' + (unit - r)).toFixed(2)
-      return x.toFixed(2) + '' + units[Math.floor(unit / 3) - 1]
+      return x.toFixed(2) + ' ' + units[Math.floor(unit / 3) - 1]
     }
 
     const selectPlan = function (plan) {
@@ -155,7 +160,7 @@ export default {
     const plansRemainingEvents = function () {
       var events = eventsCount.value.replace(/\D/g, '')
       if (events && events > selectedPlan.value.free_events) {
-        return `${parseInt(events) - selectedPlan.value.free_events}`
+        return `${numberFormatting(parseInt(events) - selectedPlan.value.free_events)}`
       }
       return ''
     }
