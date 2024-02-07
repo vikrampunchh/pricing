@@ -12,7 +12,9 @@
                 <br />
               </div>
               <ul class="list-group list-group-flush">
-                <li class="list-group-item"><span class="h5">$0.0007</span> Per Event (after {{ numberFormatting(plan.free_events) }})</li>
+                <li class="list-group-item">
+                  <span class="h5">${{ plan.per_event }}</span> Per Event (after {{ numberFormatting(plan.free_events) }})
+                </li>
                 <li class="list-group-item">
                   <span class="h5">${{ plan.base_price }}</span> Per Month
                 </li>
