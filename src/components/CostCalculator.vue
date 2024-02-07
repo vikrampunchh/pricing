@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <div class="container p-5">
       <div class="row">
-        <div class="col-lg-4 col-md-12 mb-4" v-for="plan in plans" :key="plan.id">
+        <div class="col-lg-4 col-md-12 mb-4" v-for="(plan, index) in plans" :key="plan.id + index">
           <div class="card h-100 shadow-lg" :class="selectedPlan.id == plan.id ? 'active' : ''">
             <div class="card-body">
               <div class="text-center p-3">
@@ -13,7 +13,16 @@
               </div>
               <ul class="list-group list-group-flush">
                 <li class="list-group-item">
-                  <span class="h5">${{ plan.base_price }}</span> Monthly Base Price
+                  <span v-if="editInputIndex != 'base_price_' + index" class="h5" @dblclick="editInput('base_price', index)"
+                    >${{ plan.base_price }}
+                  </span>
+                  <input
+                    v-if="editInputIndex == 'base_price_' + index"
+                    v-on:blur="hideInput('base_price', index)"
+                    @keyup.enter="hideInput('base_price', index)"
+                    v-model="editInputValue"
+                  />
+                  Monthly Base Price
                 </li>
                 <li class="list-group-item">
                   <span class="h5">${{ plan.base_price / plan.free_events }}</span> CPE* (for initial {{ numberFormatting(plan.free_events) }})
@@ -96,12 +105,14 @@
 import { ref } from 'vue'
 
 export default {
-  name: 'HelloWorld',
+  name: 'CostCalculator',
   props: {
     msg: String,
   },
   setup() {
     const eventsCount = ref('')
+    const editInputIndex = ref('')
+    const editInputValue = ref('')
     const plans = ref([
       {
         id: 1,
@@ -158,15 +169,19 @@ export default {
     }
 
     const plansRemainingEvents = function () {
-      var events = eventsCount.value.replace(/\D/g, '')
+      const events = parseNumber(eventsCount.value)
       if (events && events > selectedPlan.value.free_events) {
         return `${numberFormatting(parseInt(events) - selectedPlan.value.free_events)}`
       }
       return ''
     }
 
+    const parseNumber = function (num) {
+      return parseInt(num.replace(/\D/g, ''))
+    }
+
     const remainingEventsCost = function () {
-      const events = eventsCount.value.replace(/\D/g, '')
+      const events = parseNumber(eventsCount.value)
       if (events && events > selectedPlan.value.free_events) {
         const remainingEvents = parseInt(events) - selectedPlan.value.free_events
         return remainingEvents * selectedPlan.value.per_event
@@ -178,16 +193,47 @@ export default {
       return remainingEventsCost() + selectedPlan.value.base_price
     }
 
+    const editInput = function (label, index) {
+      editInputIndex.value = label + '_' + index
+    }
+
+    const hideInput = function (label, index) {
+      if (!editInputValue.value || !editInputIndex.value || !parseNumber(editInputValue.value)) {
+        editInputIndex.value = ''
+        return
+      }
+
+      switch (label) {
+        case 'base_price':
+          {
+            const plan = plans.value[index]
+            plan.base_price = parseNumber(editInputValue.value)
+            plans.value[index] = plan
+          }
+          break
+        default:
+          break
+      }
+      editInputIndex.value = ''
+      editInputValue.value = ''
+      // console.log('wwwwww----', label, index)
+      // console.log('wwwwww', editInputIndex.value)
+    }
+
     return {
       plans,
       eventsCount,
       selectedPlan,
+      editInputIndex,
+      editInputValue,
       eventsCountChange,
       numberFormatting,
       selectPlan,
       plansRemainingEvents,
       remainingEventsCost,
       totalCost,
+      editInput,
+      hideInput,
     }
   },
 }
