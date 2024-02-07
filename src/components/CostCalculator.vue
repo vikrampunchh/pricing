@@ -7,34 +7,48 @@
             <div class="card-body">
               <div class="text-center p-3">
                 <h5 class="card-title text-uppercase">{{ plan.name }}</h5>
-                <small>{{ plan.desc }}</small>
+                <small>
+                  Complimentary
+                  <!-- {{ plan.desc }} -->
+                  <EditableLabel
+                    :value="numberFormatting(plan.free_events)"
+                    :updateKey="'free_events'"
+                    :plan="plan"
+                    :index="index"
+                    :onValueChange="updatePlan"
+                  ></EditableLabel>
+                  events/month
+                </small>
                 <br />
                 <br />
               </div>
               <ul class="list-group list-group-flush">
-                <li class="list-group-item">
-                  <span v-if="editInputIndex != 'base_price_' + index" class="h5" @dblclick="editInput('base_price', index)"
-                    >${{ plan.base_price }}
-                  </span>
-                  <input
-                    v-if="editInputIndex == 'base_price_' + index"
-                    v-on:blur="hideInput('base_price', index)"
-                    @keyup.enter="hideInput('base_price', index)"
-                    v-model="editInputValue"
-                  />
-                  Monthly Base Price
-                </li>
+                <EditableLabel
+                  :value="plan.base_price"
+                  :updateKey="'base_price'"
+                  :valueType="'$'"
+                  :plan="plan"
+                  :index="index"
+                  :onValueChange="updatePlan"
+                  :suffixLabel="`Monthly Base Price`"
+                  :containerClass="'list-group-item'"
+                  :labelClass="'h5'"
+                ></EditableLabel>
                 <li class="list-group-item">
                   <span class="h5">${{ plan.base_price / plan.free_events }}</span> CPE* (for initial {{ numberFormatting(plan.free_events) }})
                 </li>
-                <!-- <li class="list-group-item">
-                  <span class="h5">{{ numberFormatting(plan.free_events) }}</span> Events Monthly
-                </li> -->
 
-                <li class="list-group-item">
-                  <span class="h5">${{ plan.per_event }}</span> CPE* (after {{ numberFormatting(plan.free_events) }})
-                </li>
-                <!-- <li class="list-group-item">{{ plan.notes }}</li> -->
+                <EditableLabel
+                  :value="plan.per_event"
+                  :updateKey="'per_event'"
+                  :valueType="'$'"
+                  :plan="plan"
+                  :index="index"
+                  :onValueChange="updatePlan"
+                  :suffixLabel="`CPE* (after ${numberFormatting(plan.free_events)})`"
+                  :containerClass="'list-group-item'"
+                  :labelClass="'h5'"
+                ></EditableLabel>
               </ul>
             </div>
             <div class="card-body text-center">
@@ -103,16 +117,18 @@
 
 <script>
 import { ref } from 'vue'
+import EditableLabel from './EditableLabel.vue'
 
 export default {
   name: 'CostCalculator',
+  components: {
+    EditableLabel,
+  },
   props: {
     msg: String,
   },
   setup() {
     const eventsCount = ref('')
-    const editInputIndex = ref('')
-    const editInputValue = ref('')
     const plans = ref([
       {
         id: 1,
@@ -184,56 +200,30 @@ export default {
       const events = parseNumber(eventsCount.value)
       if (events && events > selectedPlan.value.free_events) {
         const remainingEvents = parseInt(events) - selectedPlan.value.free_events
-        return remainingEvents * selectedPlan.value.per_event
+        return parseFloat(remainingEvents * selectedPlan.value.per_event).toFixed(2)
       }
       return 0
     }
 
     const totalCost = function () {
-      return remainingEventsCost() + selectedPlan.value.base_price
+      return parseFloat(remainingEventsCost()) + selectedPlan.value.base_price
     }
 
-    const editInput = function (label, index) {
-      editInputIndex.value = label + '_' + index
-    }
-
-    const hideInput = function (label, index) {
-      if (!editInputValue.value || !editInputIndex.value || !parseNumber(editInputValue.value)) {
-        editInputIndex.value = ''
-        return
-      }
-
-      switch (label) {
-        case 'base_price':
-          {
-            const plan = plans.value[index]
-            plan.base_price = parseNumber(editInputValue.value)
-            plans.value[index] = plan
-          }
-          break
-        default:
-          break
-      }
-      editInputIndex.value = ''
-      editInputValue.value = ''
-      // console.log('wwwwww----', label, index)
-      // console.log('wwwwww', editInputIndex.value)
+    const updatePlan = function (plan, index) {
+      plans.value[index] = plan
     }
 
     return {
       plans,
       eventsCount,
       selectedPlan,
-      editInputIndex,
-      editInputValue,
       eventsCountChange,
       numberFormatting,
       selectPlan,
       plansRemainingEvents,
       remainingEventsCost,
       totalCost,
-      editInput,
-      hideInput,
+      updatePlan,
     }
   },
 }
