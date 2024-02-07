@@ -11,7 +11,7 @@
                   Complimentary
                   <!-- {{ plan.desc }} -->
                   <EditableLabel
-                    :value="numberFormatting(plan.free_events)"
+                    :value="`${numberFormatting(plan.free_events)}`"
                     :updateKey="'free_events'"
                     :plan="plan"
                     :index="index"
@@ -24,7 +24,7 @@
               </div>
               <ul class="list-group list-group-flush">
                 <EditableLabel
-                  :value="plan.base_price"
+                  :value="`${plan.base_price}`"
                   :updateKey="'base_price'"
                   :valueType="'$'"
                   :plan="plan"
@@ -39,7 +39,7 @@
                 </li>
 
                 <EditableLabel
-                  :value="plan.per_event"
+                  :value="`${plan.per_event}`"
                   :updateKey="'per_event'"
                   :valueType="'$'"
                   :plan="plan"

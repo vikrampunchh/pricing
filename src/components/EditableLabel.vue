@@ -2,7 +2,14 @@
   <span :class="containerClass">
     {{ prefixLabel }}
     <span v-if="!isEditInput" :class="labelClass" @dblclick="editInput('base_price', index)">{{ valueType }}{{ value }} </span>
-    <input v-if="isEditInput" class="label-input" v-on:blur="hideInput()" @keyup.enter="hideInput()" v-model="editInputValue" v-focus="true" />
+    <input
+      v-show="isEditInput"
+      ref="input"
+      class="label-input"
+      v-on:blur="hideInput(), $emit('blur', $event)"
+      @keyup.enter="hideInput()"
+      v-model="editInputValue"
+    />
     {{ suffixLabel }}
   </span>
 </template>
@@ -25,6 +32,7 @@ export default {
     onValueChange: Function,
   },
   setup(props) {
+    const input = ref(null)
     const isEditInput = ref('')
     const editInputValue = ref(props.plan[props.updateKey])
 
@@ -37,9 +45,14 @@ export default {
 
     const editInput = function () {
       isEditInput.value = true
+      console.log('editInput', input.value.focus)
+      setTimeout(() => {
+        input.value.focus()
+      }, 100)
     }
 
-    const hideInput = function (label, index) {
+    const hideInput = function () {
+      console.log('hideInput', editInputValue.value, isEditInput.value, parseNumber(editInputValue.value))
       if (!editInputValue.value || !isEditInput.value || !parseNumber(editInputValue.value)) {
         isEditInput.value = false
         return
@@ -47,13 +60,13 @@ export default {
 
       const newPlan = Object.assign(props.plan, {})
       newPlan[props.updateKey] = parseNumber(editInputValue.value)
-      props.onValueChange(newPlan, index)
+      props.onValueChange(newPlan, props.index)
 
       isEditInput.value = false
-      editInputValue.value = ''
     }
 
     return {
+      input,
       isEditInput,
       editInputValue,
       editInput,
